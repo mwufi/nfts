@@ -1,0 +1,32 @@
+{
+  "name": "klktn",
+  "version": "0.1.0",
+  "main": "./api/src/index.js",
+  "dependencies": {
+    "@babel/core": "^7.14.3",
+    "@babel/preset-env": "^7.14.4",
+    "@onflow/fcl": "0.0.70",
+    "@onflow/sdk": "0.0.45-alpha.5",
+    "@onflow/types": "^0.0.4",
+    "babel-jest": "^26.6.3",
+    "bcrypt": "^5.0.1",
+    "dotenv": "^9.0.2",
+    "dotenv-expand": "^5.1.0",
+    "elliptic": "^6.5.3",
+    "express": "^4.17.1",
+    "express-validator": "^6.11.1",
+    "flow-js-testing": "^0.1.10",
+    "http-status-codes": "^2.1.4",
+    "jest": "^26.6.3",
+    "require-directory": "^2.1.1",
+    "sha3": "^2.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.37",
+    "@types/yargs": "^16.0.1",
+    "chai": "^4.3.4"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/jest"
+  }
+}

@@ -1,0 +1,43 @@
+{
+	"emulators": {
+		"default": {
+			"port": 3569,
+			"serviceAccount": "emulator-account"
+		}
+	},
+	"contracts": {
+		"MelonToken": "./cadence/contracts/MelonToken.cdc"
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"accounts": {
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"keys": "3647a80d24f0fa87f91964c5d77a36c2ff9c79479937c4fdcf1e72e62d730d89"
+		},
+		"account1": {
+			"address": "01cf0e2f2f715450",
+			"keys": "58ee795224d6bffc27eac445018d706c98bf377c50f96f55a8367c32f767dade"
+		},
+		"account2": {
+			"address": "179b6b1cb6755e31",
+			"keys": "f18a2b9455410e19cb03d57f3da97b50fb29cafa0f1d1f0c36ecf3b4927ce008",
+			"_public": "4580efac3270d67a6164d761048cbe21c4957c636e2b66332653cf549d3547f474d1165a4dd5f3f8d78d038a84312d778cc9e27eea5de14b1c33c1ce3163d36e"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"emulator-account": [
+				"MelonToken"
+			]
+		},
+		"testnet": {
+			"testnet-minter": [
+				"MelonToken"
+			]
+		}
+	}
+}
