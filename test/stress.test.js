@@ -37,7 +37,7 @@ afterAll(async () => {
 })
 
 // -----------------------------------------------------------------------
-// Test 2000 token mint action of a single account storage (minter)
+// Test Large Number token mint action of a single account storage (minter)
 // -----------------------------------------------------------------------
 describe("Flow Stress Test", () => {
   // function that checks account storage

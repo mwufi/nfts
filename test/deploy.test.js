@@ -55,7 +55,7 @@ describe("Test Account Creation", () => {
 // Tests Contract Deployment
 // -----------------------------------------------------------------------
 describe("Test KlktnNFT Deployment", () => {
-  test("Deploy KlktnNFT Contract", async () => {
+  test("Deploy NonFungibleToken Contract", async () => {
     try {
       // deploy NonFungibleToken Contract
       const deploymentResult = await deployContractByName({
@@ -252,6 +252,7 @@ describe("Test Transaction Code", () => {
   })
 
   test("Mint Tokens to Mintee Account", async () => {
+    jest.setTimeout(10000)
     const txTemplate = await getTransactionCode({
       name: flowConfigs.transactions.mintKlktnNFT,
       addressMap: flowConfigs.minterAddressMap,

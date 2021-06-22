@@ -1,5 +1,7 @@
 // e.g.: flow scripts execute ./cadence/scripts/print_nft_properties.cdc --arg Address:0x01cf0e2f2f715450 --arg UInt64:0
 
+// This script returns the reference to KlktnNFT of a particular id
+
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import KlktnNFT from "../contracts/KlktnNFT.cdc"
 
