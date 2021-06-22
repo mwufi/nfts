@@ -1,88 +1,65 @@
-// import NonFungibleToken from "./NonFungibleToken.cdc"
+import NonFungibleToken from "./NonFungibleToken.cdc"
 
-// MelonToken contract implements the NonFungibleToken interface
-// so it implements the behavior including
-// Collection resource with Provider, Receiver, CollectionPublic resource interfaces
-// ContractInitialized(), Withdraw(), Deposit() events
-// createEmptyCollection() method
-// and UInt64 totalSupply property
-
-pub contract MelonToken {
+pub contract KlktnNFT: NonFungibleToken {
 
   // -----------------------------------------------------------------------
-  // MelonToken Contract Events
+  // KlktnNFT Contract Events
   // -----------------------------------------------------------------------
 
-  // Emitted when MelonToken contract is created
+  // Emitted when KlktnNFT contract is created
   pub event ContractInitialized()
+  // Emitted when Collection events are created
   pub event Withdraw(id: UInt64, from: Address?)
   pub event Deposit(id: UInt64, to: Address?)
   pub event Minted(id: UInt64, typeID: UInt64, serialNumber: UInt64, metaData: {String: String})
+  // Emitted when nft template is created
   pub event NFTTemplateCreated(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {String: String})
+  
   // -----------------------------------------------------------------------
-  // MelonToken Contract Named Paths
+  // KlktnNFT Contract Named Paths
   // -----------------------------------------------------------------------
   pub let CollectionStoragePath: StoragePath
   pub let CollectionPublicPath: PublicPath
   pub let MinterStoragePath: StoragePath
 
   // -----------------------------------------------------------------------
-  // MelonToken Contract Properties
+  // KlktnNFT Contract Properties
   // -----------------------------------------------------------------------
-  // The total number of MelonTokens that have been minted
+  // The total number of KlktnNFTs that have been minted
   pub var totalSupply: UInt64
   // The hashtable for metaData and administrative parameters per typeID
-  pub var melonTokenTypeSet: {UInt64: MelonTokenMetaData}
+  pub var klktnNFTTypeSet: {UInt64: KlktnNFTMetaData}
+  // Dictionary to track expired token templates
   pub var tokenExpiredPerType: {UInt64: Bool}
+  // Dictionary to track minted tokens
   pub var tokenMintedPerType: {UInt64: UInt64}
 
   // -----------------------------------------------------------------------
-  // MelonToken Contract Resource Interfaces
+  // KlktnNFT Contract Resource Interfaces
   // -----------------------------------------------------------------------
-  // Interface to mediate withdraws from the Collection
-  pub resource interface Provider {
-      // withdraw removes an NFT from the collection and moves it to the caller
-      pub fun withdraw(withdrawID: UInt64): @NFT {
-          post {
-            result.id == withdrawID: "The ID of the withdrawn token must be the same as the requested ID"
-          }
-      }
-  }
 
-  // Interface to mediate deposits to the Collection
-  pub resource interface Receiver {
-    // deposit takes an NFT as an argument and adds it to the Collection
-    pub fun deposit(token: @NFT)
-  }
-
-  // Interface that the NFTs have to conform to
-  pub resource interface INFT {
-      // The unique ID that each NFT has
-      pub let id: UInt64
-  }
-
-  // This is the interface that users can cast their MelonToken Collection as
-  // to allow others to deposit MelonTokens into their Collection. It also allows for reading
-  // the details of MelonTokens in the Collection.
-  pub resource interface CollectionPublic {
-    pub fun deposit(token: @NFT)
+  // This is the interface that users can cast their KlktnNFT Collection as
+  // to allow others to deposit KlktnNFT into their Collection. It also allows for reading
+  // the details of KlktnNFT in the Collection.
+  pub resource interface KlktnNFTCollectionPublic {
+    pub fun deposit(token: @NonFungibleToken.NFT)
     pub fun getIDs(): [UInt64]
-    pub fun borrowNFT(id: UInt64): &NFT
-    pub fun borrowMelonToken(id: UInt64): &MelonToken.NFT? {
+    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
+    pub fun borrowKlktnNFT(id: UInt64): &KlktnNFT.NFT? {
       // If the result isn't nil, the id of the returned reference
       // should be the same as the argument to the function
       post {
         (result == nil) || (result?.id == id):
-          "Cannot borrow MelonToken reference: The ID of the returned reference is incorrect"
+          "Cannot borrow KlktnNFT reference: The ID of the returned reference is incorrect"
       }
     }
   }
 
   // -----------------------------------------------------------------------
-  // MelonToken Structs
+  // KlktnNFT Structs
   // -----------------------------------------------------------------------
-  // MelonTokenMetaData: metadata and admin properties of each typeID
-  pub struct MelonTokenMetaData {
+  // KlktnNFTMetaData: metadata and admin properties of each typeID
+  pub struct KlktnNFTMetaData {
     pub let typeID: UInt64
     pub let tokenName: String
     pub var mintLimit: UInt64
@@ -98,29 +75,32 @@ pub contract MelonToken {
   }
 
   // -----------------------------------------------------------------------
-  // MelonToken Resources
+  // KlktnNFT Resources
   // -----------------------------------------------------------------------
-  pub resource NFT: INFT {
+  pub resource NFT: NonFungibleToken.INFT {
     // the unique id for the NFT
     pub let id: UInt64
+    // the token's type, e.g. 1 == Heart
     pub let typeID: UInt64
+    // the serial number of token, this is uniquely auto-increment per typeID
     pub let serialNumber: UInt64
+    // metaData of the NFT
     pub let metaData: {String: String}
 
     init(initID: UInt64, initTypeID: UInt64, initSerialNumber: UInt64) {
       self.id = initID
       self.typeID = initTypeID
       self.serialNumber = initSerialNumber
-      self.metaData = MelonToken.melonTokenTypeSet[initTypeID]!.metaData
+      self.metaData = KlktnNFT.klktnNFTTypeSet[initTypeID]!.metaData
     }
   }
 
-  // A collection of MelonToken NFTs owned by an account
-  pub resource Collection: CollectionPublic, Provider, Receiver {
-    pub var ownedNFTs: @{UInt64: NFT}
+  // A collection of KlktnNFT NFTs owned by an account
+  pub resource Collection: KlktnNFTCollectionPublic, NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
+    pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
 
     // withdraw: Removes an NFT from the collection and moves it to the caller
-    pub fun withdraw(withdrawID: UInt64): @MelonToken.NFT {
+    pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
       let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
       emit Withdraw(id: token.id, from: self.owner?.address)
       return <-token
@@ -128,8 +108,8 @@ pub contract MelonToken {
 
     // deposit: Takes a NFT and adds it to the collections dictionary
     // and adds the ID to the id array
-    pub fun deposit(token: @MelonToken.NFT) {
-      let token <- token as! @MelonToken.NFT
+    pub fun deposit(token: @NonFungibleToken.NFT) {
+      let token <- token as! @KlktnNFT.NFT
       let id: UInt64 = token.id
       // add the new token to the dictionary which removes the old one
       let oldToken <- self.ownedNFTs[id] <- token
@@ -145,18 +125,18 @@ pub contract MelonToken {
     // Gets a reference to an NFT in the collection
     // so that the caller can read its metadata and call its methods
     //
-    pub fun borrowNFT(id: UInt64): &MelonToken.NFT {
-      return &self.ownedNFTs[id] as &MelonToken.NFT
+    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
+      return &self.ownedNFTs[id] as &NonFungibleToken.NFT
     }
 
-    // Gets a reference to an NFT in the collection as a KittyItem,
+    // Gets a reference to an NFT in the collection as a KlktnNFT,
     // exposing all of its fields (including the typeID).
-    // This is safe as there are no functions that can be called on the KittyItem.
+    // This is safe as there are no functions that can be called on the KlktnNFT.
     //
-    pub fun borrowMelonToken(id: UInt64): &MelonToken.NFT? {
+    pub fun borrowKlktnNFT(id: UInt64): &KlktnNFT.NFT? {
       if self.ownedNFTs[id] != nil {
-        let ref = &self.ownedNFTs[id] as auth &MelonToken.NFT
-        return ref as! &MelonToken.NFT
+        let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
+        return ref as! &KlktnNFT.NFT
       } else {
         return nil
       }
@@ -177,7 +157,7 @@ pub contract MelonToken {
   // createEmptyCollection
   // public function that anyone can call to create a new empty collection
   //
-  pub fun createEmptyCollection(): @MelonToken.Collection {
+  pub fun createEmptyCollection(): @NonFungibleToken.Collection {
     return <- create Collection()
   }
 
@@ -185,76 +165,76 @@ pub contract MelonToken {
 
 		// mintNFT: Mints a new NFT with a new ID
 		// and deposit it in the recipients collection using their collection reference
-		pub fun mintNFT(recipient: &{MelonToken.CollectionPublic}, typeID: UInt64) {
+		pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, typeID: UInt64) {
       // check template existance
-      if !MelonToken.melonTokenTypeSet.containsKey(typeID) {
+      if !KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
         panic("template for typeID does not exist.")
       }
       // check if token template is expired
-      if MelonToken.tokenExpiredPerType.containsKey(typeID) {
+      if KlktnNFT.tokenExpiredPerType.containsKey(typeID) {
         panic("token of this typeID is no longer being offered.")
       }
       // check serial number existence, initialize it if serial number does not exist
-      let targetTokenMetaData = MelonToken.melonTokenTypeSet[typeID]!
-      if !MelonToken.tokenMintedPerType.containsKey(typeID) {
-        MelonToken.tokenMintedPerType[typeID] = (0 as UInt64)
+      let targetTokenMetaData = KlktnNFT.klktnNFTTypeSet[typeID]!
+      if !KlktnNFT.tokenMintedPerType.containsKey(typeID) {
+        KlktnNFT.tokenMintedPerType[typeID] = (0 as UInt64)
       }
-      let serialNumber = MelonToken.tokenMintedPerType[typeID]! + (1 as UInt64)
+      let serialNumber = KlktnNFT.tokenMintedPerType[typeID]! + (1 as UInt64)
       // emit Minted event
-      emit Minted(id: MelonToken.totalSupply, typeID: typeID, serialNumber: serialNumber, metaData: targetTokenMetaData.metaData)
+      emit Minted(id: KlktnNFT.totalSupply, typeID: typeID, serialNumber: serialNumber, metaData: targetTokenMetaData.metaData)
 
 			// deposit it in the recipient's account using their reference
-			recipient.deposit(token: <-create MelonToken.NFT(
-        initID: MelonToken.totalSupply,
+			recipient.deposit(token: <-create KlktnNFT.NFT(
+        initID: KlktnNFT.totalSupply,
         initTypeID: typeID,
         initSerialNumber: serialNumber
         )
       )
 
-      MelonToken.totalSupply = MelonToken.totalSupply + (1 as UInt64)
+      KlktnNFT.totalSupply = KlktnNFT.totalSupply + (1 as UInt64)
       // expire token when mintLimit is hit
       if serialNumber >= targetTokenMetaData.mintLimit {
-        MelonToken.tokenExpiredPerType[typeID] = true
+        KlktnNFT.tokenExpiredPerType[typeID] = true
       }
       // increse the serial number for the minted token type
-      MelonToken.tokenMintedPerType[typeID] = serialNumber
+      KlktnNFT.tokenMintedPerType[typeID] = serialNumber
 		}
 
     // mintNFT: createTemplate: creates a template for token of typeID
     pub fun createTemplate(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {String: String}): UInt64 {
       // check if template with the same id exists
-      if MelonToken.melonTokenTypeSet.containsKey(typeID) {
+      if KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
         panic("Token with the same typeID already exists.")
       }
-      // create a new MelonTokenMetaData resource for the typeID
-      var newNFTTemplate = MelonTokenMetaData(initTypeID: typeID, initTokenName: tokenName, initMintLimit: mintLimit, initMetaData: metaData)
-      // store it in the melonTokenTypeSet mapping field
-      MelonToken.melonTokenTypeSet[newNFTTemplate.typeID] = newNFTTemplate
+      // create a new KlktnNFTMetaData resource for the typeID
+      var newNFTTemplate = KlktnNFTMetaData(initTypeID: typeID, initTokenName: tokenName, initMintLimit: mintLimit, initMetaData: metaData)
+      // store it in the klktnNFTTypeSet mapping field
+      KlktnNFT.klktnNFTTypeSet[newNFTTemplate.typeID] = newNFTTemplate
       return newNFTTemplate.typeID
     }
 	}
 
   // -----------------------------------------------------------------------
-  // MelonToken contract-level function definitions
+  // KlktnNFT contract-level function definitions
   // -----------------------------------------------------------------------
   // fetch
-  // Get a reference to a MelonToken from an account's Collection, if available.
-  // If an account does not have a MelonToken.Collection, panic.
+  // Get a reference to a KlktnNFT from an account's Collection, if available.
+  // If an account does not have a KlktnNFT.Collection, panic.
   // If it has a collection but does not contain the itemID, return nil.
   // If it has a collection and that collection contains the itemID, return a reference to that.
   //
-  pub fun fetch(_ from: Address, itemID: UInt64): &MelonToken.NFT? {
+  pub fun fetch(_ from: Address, itemID: UInt64): &KlktnNFT.NFT? {
     let collection = getAccount(from)
-      .getCapability(MelonToken.CollectionPublicPath)!
-      .borrow<&MelonToken.Collection{MelonToken.CollectionPublic}>()
+      .getCapability(KlktnNFT.CollectionPublicPath)
+      .borrow<&KlktnNFT.Collection{KlktnNFT.KlktnNFTCollectionPublic}>()
       ?? panic("Couldn't get collection")
-    // We trust MelonToken.Collection.borrowMelonToken to get the correct itemID
+    // We trust KlktnNFT.Collection.borrowKlktnNFT to get the correct itemID
     // (it checks it before returning it).
-    return collection.borrowMelonToken(id: itemID)
+    return collection.borrowKlktnNFT(id: itemID)
   }
 
   pub fun peekTokenLimit(typeID: UInt64): UInt64? {
-    if let token = MelonToken.melonTokenTypeSet[typeID] {
+    if let token = KlktnNFT.klktnNFTTypeSet[typeID] {
       return token.mintLimit
     } else {
       return nil
@@ -262,33 +242,33 @@ pub contract MelonToken {
   }
 
   pub fun checkTokenExpiration(typeID: UInt64): Bool {
-    if MelonToken.tokenExpiredPerType.containsKey(typeID) {
+    if KlktnNFT.tokenExpiredPerType.containsKey(typeID) {
       return true
     }
     return false
   }
 
   pub fun checkTemplate(typeID: UInt64): Bool {
-    if MelonToken.melonTokenTypeSet.containsKey(typeID) {
+    if KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
       return true
     }
     return false
   }
 
   // -----------------------------------------------------------------------
-  // MelonToken Contract Initializer
+  // KlktnNFT Contract Initializer
   // -----------------------------------------------------------------------
   init() {
     // Set our named paths
-    self.CollectionStoragePath = /storage/MelonTokenCollection
-    self.CollectionPublicPath = /public/MelonTokenCollection
-    self.MinterStoragePath = /storage/MelonTokenMinter
+    self.CollectionStoragePath = /storage/KlktnNFTCollection
+    self.CollectionPublicPath = /public/KlktnNFTCollection
+    self.MinterStoragePath = /storage/KlktnNFTMinter
 
     // Initialize the total supply
     self.totalSupply = 0
 
     // Initialize the type mappings
-    self.melonTokenTypeSet = {}
+    self.klktnNFTTypeSet = {}
     self.tokenExpiredPerType = {}
     self.tokenMintedPerType = {}
 

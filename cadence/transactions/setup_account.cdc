@@ -1,21 +1,24 @@
-import MelonToken from "../contracts/MelonToken.cdc"
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import KlktnNFT from "../contracts/KlktnNFT.cdc"
 
-// This transaction configures an account to hold MelonTokens.
+// flow transactions send ./cadence/transactions/setup_account.cdc --signer account1
+
+// This transaction configures an account to hold KlktnNFT.
 
 transaction {
   prepare(signer: AuthAccount) {
     // if the account already had a collection
-    if signer.borrow<&MelonToken.Collection>(from: MelonToken.CollectionStoragePath) != nil {
+    if signer.borrow<&KlktnNFT.Collection>(from: KlktnNFT.CollectionStoragePath) != nil {
       panic("A Collection is already setup for this account")
     }
     // if the account doesn't already have a collection
-    if signer.borrow<&MelonToken.Collection>(from: MelonToken.CollectionStoragePath) == nil {
+    if signer.borrow<&KlktnNFT.Collection>(from: KlktnNFT.CollectionStoragePath) == nil {
       // create a new empty collection
-      let collection <- MelonToken.createEmptyCollection()
+      let collection <- KlktnNFT.createEmptyCollection()
       // save it to the account
-      signer.save(<-collection, to: MelonToken.CollectionStoragePath)
+      signer.save(<-collection, to: KlktnNFT.CollectionStoragePath)
       // create a public capability for the collection
-      signer.link<&MelonToken.Collection{MelonToken.CollectionPublic}>(MelonToken.CollectionPublicPath, target: MelonToken.CollectionStoragePath)
+      signer.link<&KlktnNFT.Collection{NonFungibleToken.CollectionPublic, KlktnNFT.KlktnNFTCollectionPublic}>(KlktnNFT.CollectionPublicPath, target: KlktnNFT.CollectionStoragePath)
     }
   }
 }

@@ -1,7 +1,5 @@
 // example emulator command:
-// gave up on passing Dictionary{String: String} with bash or zsh after 4 hours try...rip
-// the transaction can be sent via the NFT route and NFTService from the backend with Javascript SDK
-// flow transactions send ./cadence/transactions/create_token_template.cdc --arg UInt64:1 --arg String:"Kevin Heart" --arg UInt64:399 --arg {String: String}:[{key: 'artist', value: 'Kevin Woo'}]
+// flow transactions send ./cadence/transactions/mint_melon_token.cdc --arg Address:0x01cf0e2f2f715450 --arg UInt64:1
 
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import KlktnNFT from "../contracts/KlktnNFT.cdc"
@@ -11,7 +9,7 @@ import KlktnNFT from "../contracts/KlktnNFT.cdc"
 // It must be run with the account that has the minter resource
 // stored at path /storage/NFTMinter.
 
-transaction(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {String: String}) {
+transaction(recipient: Address, typeID: UInt64) {
 
   // local variable for storing the minter reference
   let minter: &KlktnNFT.NFTMinter
@@ -23,6 +21,16 @@ transaction(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {Str
   }
 
   execute {
-    self.minter.createTemplate(typeID: typeID, tokenName: tokenName, mintLimit: mintLimit, metaData: metaData)
+    // get the public account object for the recipient
+    let recipient = getAccount(recipient)
+
+    // borrow the recipient's public NFT collection reference
+    let receiver = recipient
+      .getCapability(KlktnNFT.CollectionPublicPath)
+      .borrow<&{NonFungibleToken.CollectionPublic}>()
+      ?? panic ("Could not get receiver reference to the NFT Collection")
+
+    // mint the NFT and deposit it to the recipient's collection
+    self.minter.mintNFT(recipient: receiver, typeID: typeID)
   }
 }
