@@ -1,10 +1,13 @@
 # KLKTN NFTs
 
-Please use node v14
+## Roles
 
-Due to some issue with dependencies we've committed `node_modules`, for now don't run `npm install` or it might break packages -- (link to issue here)
+* Minter: Controlled by KLKTN, can create NFT templates and mint NFTs.
 
-Test with: `npm test`
+* Mintee: Controlled by KLKTN, holds the NFTs that are minted on a custodial way. Later allows users to withdraw their NFTs to their wallets.
+
+* Bowser: Represents some customer account.
+
 
 ## Contracts
 
@@ -14,11 +17,11 @@ Test with: `npm test`
 
 ## Transactions
 
-* setup_account.cdc: This transaction configures an account to hold KlktnNFT.
+* setup_account.cdc: This transaction configures an account to hold KlktnNFT. At first only used for our custodial account, as we implement withdraws, users can use it as well.
 
-* create_token_template.cdc: This transction uses the NFTMinter resource to create an NFT template of typeID, it must be run with the account that has the minter resource stored at path /storage/NFTMinter.
+* create_token_template.cdc: This transaction uses the NFTMinter resource to create an NFT template of typeID, it must be run with the account that has the minter resource stored at path /storage/NFTMinter.
 
-* mint_klktn_token.cdc: This transction uses the NFTMinter resource to mint a new NFT, it must be run with the account that has the minter resource stored at path /storage/NFTMinter.
+* mint_klktn_token.cdc: This transaction uses the NFTMinter resource to mint a new NFT, it must be run with the account that has the minter resource stored at path /storage/NFTMinter.
 
 * transfer_klktn_token.cdc: This transaction transfers a KlktnNFT from one account to another.
 
@@ -46,7 +49,11 @@ Test with: `npm test`
 
 ## Tests
 
-Run `npm test` to run the 3 tests we setup below for testing the Cadence contracts, transactions, and scripts, you may also find the test files in the ./test folder
+Please use node v14
+
+Due to some issue with dependencies we've committed `node_modules`, for now don't run `npm install` or it might break packages ([described in more detail here](https://github.com/onflow/flow-js-testing/issues/38))
+
+**Run** `npm test` to run the 3 tests we setup below for testing the Cadence contracts, transactions, and scripts, you may also find the test files in the ./test folder
 
 * deploy test:
 This test will perform the following tests below
