@@ -1,11 +1,10 @@
-// example emulator transaction command:
-// flow transactions send ./cadence/transactions/transfer_melon_token.cdc --arg Address:0xf8d6e0586b0a20c7 --arg UInt64:1 --signer account1
+// e.g. flow transactions send ./cadence/transactions/transfer_melon_token.cdc --arg Address:0xf8d6e0586b0a20c7 --arg UInt64:1 --signer account1
 // i.e. to send token with id 1 from the account1 to the emulator-account
+
+// This transaction transfers a KlktnNFT from one account to another.
 
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import KlktnNFT from "../contracts/KlktnNFT.cdc"
-
-// This transaction transfers a KlktnNFT from one account to another.
 
 transaction(recipient: Address, withdrawID: UInt64) {
   prepare(signer: AuthAccount) {

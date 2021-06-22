@@ -39,7 +39,7 @@ afterAll(async () => {
 // -----------------------------------------------------------------------
 // Test 2000 token mint action of a single account storage (minter)
 // -----------------------------------------------------------------------
-describe.skip("Flow Stress Test", () => {
+describe("Flow Stress Test", () => {
   // function that checks account storage
   const logStorage = async (account, action) => {
     const scriptTemplate = await getScriptCode({

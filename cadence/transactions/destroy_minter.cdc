@@ -1,8 +1,8 @@
+// e.g. flow transactions send ./cadence/transactions/destroy_minter.cdc --network testnet --signer testnet-minter
+
+// This transaction is used to remove the minter from Minter storage when we remove the contract.
+
 import KlktnNFT from "../contracts/KlktnNFT.cdc"
-
-// flow transactions send ./cadence/transactions/destroy_minter.cdc --network testnet --signer testnet-minter
-
-// This transaction removes the minter from Minter storage
 
 transaction {
   prepare(signer: AuthAccount) {

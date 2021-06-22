@@ -1,3 +1,4 @@
+// KlktnNFT implements NonFungibleToken contract interface
 import NonFungibleToken from "./NonFungibleToken.cdc"
 
 pub contract KlktnNFT: NonFungibleToken {
@@ -8,11 +9,11 @@ pub contract KlktnNFT: NonFungibleToken {
 
   // Emitted when KlktnNFT contract is created
   pub event ContractInitialized()
-  // Emitted when Collection events are created
+  // Emitted when Collection events below are created
   pub event Withdraw(id: UInt64, from: Address?)
   pub event Deposit(id: UInt64, to: Address?)
   pub event Minted(id: UInt64, typeID: UInt64, serialNumber: UInt64, metaData: {String: String})
-  // Emitted when nft template is created
+  // Emitted when an nft template is created
   pub event NFTTemplateCreated(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {String: String})
   
   // -----------------------------------------------------------------------
@@ -25,22 +26,27 @@ pub contract KlktnNFT: NonFungibleToken {
   // -----------------------------------------------------------------------
   // KlktnNFT Contract Properties
   // -----------------------------------------------------------------------
-  // The total number of KlktnNFTs that have been minted
+  // totalSupply:
+  // - Total number of KlktnNFTs that have been minted
   pub var totalSupply: UInt64
-  // The hashtable for metaData and administrative parameters per typeID
+  // klktnNFTTypeSet:
+  // - Dictionary for metaData and administrative parameters per typeID
   pub var klktnNFTTypeSet: {UInt64: KlktnNFTMetaData}
-  // Dictionary to track expired token templates
+  // tokenExpiredPerType:
+  // - Dictionary to hold expired token templates
   pub var tokenExpiredPerType: {UInt64: Bool}
-  // Dictionary to track minted tokens
+  // tokenMintedPerType:
+  // - Dictionary to track minted tokens per typeID
   pub var tokenMintedPerType: {UInt64: UInt64}
 
   // -----------------------------------------------------------------------
   // KlktnNFT Contract Resource Interfaces
   // -----------------------------------------------------------------------
 
-  // This is the interface that users can cast their KlktnNFT Collection as
-  // to allow others to deposit KlktnNFT into their Collection. It also allows for reading
-  // the details of KlktnNFT in the Collection.
+  // KlktnNFTCollectionPublic:
+  // - This is the interface that users can cast their KlktnNFT Collection as
+  // - to allow others to deposit KlktnNFT into their Collection
+  // - It also allows for reading the details of KlktnNFT in the Collection
   pub resource interface KlktnNFTCollectionPublic {
     pub fun deposit(token: @NonFungibleToken.NFT)
     pub fun getIDs(): [UInt64]
@@ -58,7 +64,8 @@ pub contract KlktnNFT: NonFungibleToken {
   // -----------------------------------------------------------------------
   // KlktnNFT Structs
   // -----------------------------------------------------------------------
-  // KlktnNFTMetaData: metadata and admin properties of each typeID
+  // KlktnNFTMetaData:
+  // - metadata and properties for token per typeID
   pub struct KlktnNFTMetaData {
     pub let typeID: UInt64
     pub let tokenName: String
@@ -77,12 +84,14 @@ pub contract KlktnNFT: NonFungibleToken {
   // -----------------------------------------------------------------------
   // KlktnNFT Resources
   // -----------------------------------------------------------------------
+  // NFT:
+  // - The resource that represents the artist-released NFTs
   pub resource NFT: NonFungibleToken.INFT {
-    // the unique id for the NFT
+    // unique id for the NFT
     pub let id: UInt64
-    // the token's type, e.g. 1 == Heart
+    // token's type, e.g. 1 == Heart
     pub let typeID: UInt64
-    // the serial number of token, this is uniquely auto-increment per typeID
+    // serial number of token, this is unique and auto-increment per typeID
     pub let serialNumber: UInt64
     // metaData of the NFT
     pub let metaData: {String: String}
@@ -95,19 +104,23 @@ pub contract KlktnNFT: NonFungibleToken {
     }
   }
 
-  // A collection of KlktnNFT NFTs owned by an account
+  // Collection
+  // - A resource that every user who owns NFTs
+  // - will srore in their account to manage their NFTs
   pub resource Collection: KlktnNFTCollectionPublic, NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
     pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
 
-    // withdraw: Removes an NFT from the collection and moves it to the caller
+    // withdraw:
+    // - Removes an NFT from the collection and moves it to the caller
+    // - parameter: withdrawID: the ID of the owned NFT that is to be removed from the Collection
     pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
       let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
       emit Withdraw(id: token.id, from: self.owner?.address)
       return <-token
     }
 
-    // deposit: Takes a NFT and adds it to the collections dictionary
-    // and adds the ID to the id array
+    // deposit:
+    // - Takes an NFT and adds it to the Collection dictionary
     pub fun deposit(token: @NonFungibleToken.NFT) {
       let token <- token as! @KlktnNFT.NFT
       let id: UInt64 = token.id
@@ -117,22 +130,23 @@ pub contract KlktnNFT: NonFungibleToken {
       destroy oldToken
     }
 
-    // Returns an array of the IDs that are in the collection
+    // getIDs:
+    // - Returns an array of the IDs that are in the collection
     pub fun getIDs(): [UInt64] {
       return self.ownedNFTs.keys
     }
 
-    // Gets a reference to an NFT in the collection
+    // borrowNFT: 
+    // - Gets a reference to an NFT in the collection
     // so that the caller can read its metadata and call its methods
-    //
     pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
       return &self.ownedNFTs[id] as &NonFungibleToken.NFT
     }
 
-    // Gets a reference to an NFT in the collection as a KlktnNFT,
-    // exposing all of its fields (including the typeID).
-    // This is safe as there are no functions that can be called on the KlktnNFT.
-    //
+    // borrowKlktnNFT: 
+    // - Gets a reference to an NFT in the collection as a KlktnNFT,
+    // - exposing all of its fields (including the typeID)
+    // - This is safe as there are no administrative functions that can be called on the KlktnNFT
     pub fun borrowKlktnNFT(id: UInt64): &KlktnNFT.NFT? {
       if self.ownedNFTs[id] != nil {
         let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
@@ -154,28 +168,30 @@ pub contract KlktnNFT: NonFungibleToken {
     }
   }
 
-  // createEmptyCollection
-  // public function that anyone can call to create a new empty collection
-  //
+  // createEmptyCollection:
+  // - Public function that anyone can call to create a new empty Collection
   pub fun createEmptyCollection(): @NonFungibleToken.Collection {
     return <- create Collection()
   }
 
+  // NFTMinter
+  // - Administrative resource that only the contract deployer has access to
+  // - to mint token and create NFT templates
   pub resource NFTMinter {
 
 		// mintNFT: Mints a new NFT with a new ID
-		// and deposit it in the recipients collection using their collection reference
+		// - and deposit it in the recipients collection using their collection reference
 		pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, typeID: UInt64) {
-      // check template existance
+      // check if template of typeID exists
       if !KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
         panic("template for typeID does not exist.")
       }
       // check if token template is expired
       if KlktnNFT.tokenExpiredPerType.containsKey(typeID) {
         panic("token of this typeID is no longer being offered.")
-      }
-      // check serial number existence, initialize it if serial number does not exist
+      }      
       let targetTokenMetaData = KlktnNFT.klktnNFTTypeSet[typeID]!
+      // check serial number existence, initialize it if serial number does not exist
       if !KlktnNFT.tokenMintedPerType.containsKey(typeID) {
         KlktnNFT.tokenMintedPerType[typeID] = (0 as UInt64)
       }
@@ -217,12 +233,11 @@ pub contract KlktnNFT: NonFungibleToken {
   // -----------------------------------------------------------------------
   // KlktnNFT contract-level function definitions
   // -----------------------------------------------------------------------
-  // fetch
-  // Get a reference to a KlktnNFT from an account's Collection, if available.
-  // If an account does not have a KlktnNFT.Collection, panic.
-  // If it has a collection but does not contain the itemID, return nil.
-  // If it has a collection and that collection contains the itemID, return a reference to that.
-  //
+  // fetch:
+  // - Get a reference to a KlktnNFT from an account's Collection, if available.
+  // - If an account does not have a KlktnNFT.Collection, panic.
+  // - If it has a collection but does not contain the itemID, return nil.
+  // - If it has a collection and that collection contains the itemID, return a reference to that.
   pub fun fetch(_ from: Address, itemID: UInt64): &KlktnNFT.NFT? {
     let collection = getAccount(from)
       .getCapability(KlktnNFT.CollectionPublicPath)
@@ -233,6 +248,8 @@ pub contract KlktnNFT: NonFungibleToken {
     return collection.borrowKlktnNFT(id: itemID)
   }
 
+  // peekTokenLimit:
+  // - Returns: enforced mint limit for a token of typeID
   pub fun peekTokenLimit(typeID: UInt64): UInt64? {
     if let token = KlktnNFT.klktnNFTTypeSet[typeID] {
       return token.mintLimit
@@ -241,6 +258,8 @@ pub contract KlktnNFT: NonFungibleToken {
     }
   }
 
+  // checkTokenExpiration
+  // - Returns: boolean indicating token of typeID is expired
   pub fun checkTokenExpiration(typeID: UInt64): Bool {
     if KlktnNFT.tokenExpiredPerType.containsKey(typeID) {
       return true
@@ -248,6 +267,8 @@ pub contract KlktnNFT: NonFungibleToken {
     return false
   }
 
+  // checkTemplate
+  // - Returns: boolean indicating if template exists
   pub fun checkTemplate(typeID: UInt64): Bool {
     if KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
       return true
@@ -272,7 +293,6 @@ pub contract KlktnNFT: NonFungibleToken {
     self.tokenExpiredPerType = {}
     self.tokenMintedPerType = {}
 
-    // TODO consider: should we check for existing storage? https://github.com/versus-flow/versus-contracts/blob/master/transactions/buy/bid.cdc#L29
     // Create a Minter resource and save it to storage
     let minter <- create NFTMinter()
     self.account.save(<-minter, to: self.MinterStoragePath)

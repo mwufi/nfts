@@ -1,13 +1,10 @@
-// example emulator command:
-// flow transactions send ./cadence/transactions/mint_melon_token.cdc --arg Address:0x01cf0e2f2f715450 --arg UInt64:1
+//e.g. flow transactions send ./cadence/transactions/mint_melon_token.cdc --arg Address:0x01cf0e2f2f715450 --arg UInt64:1
+
+// This transction uses the NFTMinter resource to mint a new NFT.
+// It must be run with the account that has the minter resource stored at path /storage/NFTMinter.
 
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import KlktnNFT from "../contracts/KlktnNFT.cdc"
-
-// This transction uses the NFTMinter resource to mint a new NFT.
-//
-// It must be run with the account that has the minter resource
-// stored at path /storage/NFTMinter.
 
 transaction(recipient: Address, typeID: UInt64) {
 

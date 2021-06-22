@@ -1,9 +1,9 @@
-import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import KlktnNFT from "../contracts/KlktnNFT.cdc"
-
 // flow transactions send ./cadence/transactions/setup_account.cdc --signer account1
 
 // This transaction configures an account to hold KlktnNFT.
+
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import KlktnNFT from "../contracts/KlktnNFT.cdc"
 
 transaction {
   prepare(signer: AuthAccount) {
