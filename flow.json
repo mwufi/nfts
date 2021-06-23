@@ -6,7 +6,13 @@
 		}
 	},
 	"contracts": {
-		"MelonToken": "./cadence/contracts/MelonToken.cdc"
+    "KlktnNFT": "./cadence/contracts/KlktnNFT.cdc",
+    "NonFungibleToken": {
+      "source": "./cadence/contracts/NonFungibleToken.cdc",
+      "aliases": {
+        "testnet": "0x631e88ae7f1d7c20"
+      }
+    }
 	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",
@@ -31,12 +37,12 @@
 	"deployments": {
 		"emulator": {
 			"emulator-account": [
-				"MelonToken"
+				"NonFungibleToken", "KlktnNFT"
 			]
 		},
 		"testnet": {
 			"testnet-minter": [
-				"MelonToken"
+				"KlktnNFT"
 			]
 		}
 	}

@@ -1,6 +1,6 @@
 // flow transactions send ./cadence/transactions/create_token_template.cdc --arg UInt64:1 --arg String:"Kevin Heart" --arg UInt64:399 --arg {String: String}:[{key: 'artist', value: 'Kevin Woo'}]
 
-// Question to Flow team: how to use flow CLI to pass in dictionary {String: String} objects (the command aboce is not working)?
+// Question to Flow team: how to use flow CLI to pass in dictionary {String: String} objects (the command above is not working)?
 
 
 // This transction uses the NFTMinter resource to create an NFT template of typeID.
