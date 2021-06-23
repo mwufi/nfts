@@ -32,9 +32,6 @@ pub contract KlktnNFT: NonFungibleToken {
   // klktnNFTTypeSet:
   // - Dictionary for metaData and administrative parameters per typeID
   access(self) var klktnNFTTypeSet: {UInt64: KlktnNFTMetaData}
-  // tokenExpiredPerType:
-  // - Dictionary to hold expired token templates
-  access(self) var tokenExpiredPerType: {UInt64: Bool}
   // tokenMintedPerType:
   // - Dictionary to track minted tokens per typeID
   access(self) var tokenMintedPerType: {UInt64: UInt64}
@@ -187,7 +184,7 @@ pub contract KlktnNFT: NonFungibleToken {
         panic("template for typeID does not exist.")
       }
       // check if token template is expired
-      if KlktnNFT.tokenExpiredPerType.containsKey(typeID) {
+      if KlktnNFT.checkTokenExpiration(typeID: typeID) {
         panic("token of this typeID is no longer being offered.")
       }      
       let targetTokenMetaData = KlktnNFT.klktnNFTTypeSet[typeID]!
@@ -208,10 +205,6 @@ pub contract KlktnNFT: NonFungibleToken {
       )
 
       KlktnNFT.totalSupply = KlktnNFT.totalSupply + (1 as UInt64)
-      // expire token when mintLimit is hit
-      if serialNumber >= targetTokenMetaData.mintLimit {
-        KlktnNFT.tokenExpiredPerType[typeID] = true
-      }
       // increse the serial number for the minted token type
       KlktnNFT.tokenMintedPerType[typeID] = serialNumber
     }
@@ -260,11 +253,19 @@ pub contract KlktnNFT: NonFungibleToken {
 
   // checkTokenExpiration
   // - Returns: boolean indicating token of typeID is expired
+  // - We also return true representing token of typeID is expired for tokens without valid templates
   pub fun checkTokenExpiration(typeID: UInt64): Bool {
-    if KlktnNFT.tokenExpiredPerType.containsKey(typeID) {
-      return true
+    // get enforced token mint limit
+    var tokenMintLimit = (0 as UInt64)
+    if let tokenMetaData = KlktnNFT.klktnNFTTypeSet[typeID] {
+      tokenMintLimit = tokenMetaData.mintLimit
     }
-    return false
+    // Get number of minted tokens
+    var tokenMinted = (0 as UInt64)
+    if let tokenMintedFromContractVar = KlktnNFT.tokenMintedPerType[typeID] {
+      tokenMinted = KlktnNFT.tokenMintedPerType[typeID]!
+    }
+    return tokenMinted >= tokenMintLimit
   }
 
   // checkTemplate
@@ -290,7 +291,6 @@ pub contract KlktnNFT: NonFungibleToken {
 
     // Initialize the type mappings
     self.klktnNFTTypeSet = {}
-    self.tokenExpiredPerType = {}
     self.tokenMintedPerType = {}
 
     // Create a Minter resource and save it to storage
