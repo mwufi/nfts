@@ -208,6 +208,22 @@ pub contract KlktnNFT: NonFungibleToken {
       // increse the serial number for the minted token type
       KlktnNFT.tokenMintedPerType[typeID] = serialNumber
     }
+    
+    pub fun updateMetaData(typeID: UInt64, metaDataToUpdate: {String: String}): KlktnNFT.KlktnNFTMetaData {
+      if !KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
+        panic("Token with the typeID does not exist.")
+      }
+      // typeID cannot change
+      var NFTTemplateObj = KlktnNFT.klktnNFTTypeSet[typeID]!
+      let typeID = NFTTemplateObj.typeID
+      let tokenName = NFTTemplateObj.tokenName
+      let mintLimit = NFTTemplateObj.mintLimit
+      let newNFTTemplateObj = KlktnNFTMetaData(initTypeID: typeID, initTokenName: tokenName, initMintLimit: mintLimit, initMetaData: metaDataToUpdate)
+      // update
+      KlktnNFT.klktnNFTTypeSet[typeID] = newNFTTemplateObj
+      // return updated object
+      return KlktnNFT.klktnNFTTypeSet[typeID]!
+    }
 
     // mintNFT: createTemplate: creates a template for token of typeID
     pub fun createTemplate(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {String: String}): UInt64 {
