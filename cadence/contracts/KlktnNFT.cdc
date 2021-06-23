@@ -31,13 +31,13 @@ pub contract KlktnNFT: NonFungibleToken {
   pub var totalSupply: UInt64
   // klktnNFTTypeSet:
   // - Dictionary for metaData and administrative parameters per typeID
-  pub var klktnNFTTypeSet: {UInt64: KlktnNFTMetaData}
+  access(self) var klktnNFTTypeSet: {UInt64: KlktnNFTMetaData}
   // tokenExpiredPerType:
   // - Dictionary to hold expired token templates
-  pub var tokenExpiredPerType: {UInt64: Bool}
+  access(self) var tokenExpiredPerType: {UInt64: Bool}
   // tokenMintedPerType:
   // - Dictionary to track minted tokens per typeID
-  pub var tokenMintedPerType: {UInt64: UInt64}
+  access(self) var tokenMintedPerType: {UInt64: UInt64}
 
   // -----------------------------------------------------------------------
   // KlktnNFT Contract Resource Interfaces
@@ -179,9 +179,9 @@ pub contract KlktnNFT: NonFungibleToken {
   // - to mint token and create NFT templates
   pub resource NFTMinter {
 
-		// mintNFT: Mints a new NFT with a new ID
-		// - and deposit it in the recipients collection using their collection reference
-		pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, typeID: UInt64) {
+    // mintNFT: Mints a new NFT with a new ID
+    // - and deposit it in the recipients collection using their collection reference
+    pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, typeID: UInt64) {
       // check if template of typeID exists
       if !KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
         panic("template for typeID does not exist.")
@@ -199,8 +199,8 @@ pub contract KlktnNFT: NonFungibleToken {
       // emit Minted event
       emit Minted(id: KlktnNFT.totalSupply, typeID: typeID, serialNumber: serialNumber, metaData: targetTokenMetaData.metaData)
 
-			// deposit it in the recipient's account using their reference
-			recipient.deposit(token: <-create KlktnNFT.NFT(
+      // deposit it in the recipient's account using their reference
+      recipient.deposit(token: <-create KlktnNFT.NFT(
         initID: KlktnNFT.totalSupply,
         initTypeID: typeID,
         initSerialNumber: serialNumber
@@ -214,7 +214,7 @@ pub contract KlktnNFT: NonFungibleToken {
       }
       // increse the serial number for the minted token type
       KlktnNFT.tokenMintedPerType[typeID] = serialNumber
-		}
+    }
 
     // mintNFT: createTemplate: creates a template for token of typeID
     pub fun createTemplate(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {String: String}): UInt64 {
@@ -228,7 +228,7 @@ pub contract KlktnNFT: NonFungibleToken {
       KlktnNFT.klktnNFTTypeSet[newNFTTemplate.typeID] = newNFTTemplate
       return newNFTTemplate.typeID
     }
-	}
+  }
 
   // -----------------------------------------------------------------------
   // KlktnNFT contract-level function definitions
@@ -297,5 +297,5 @@ pub contract KlktnNFT: NonFungibleToken {
     let minter <- create NFTMinter()
     self.account.save(<-minter, to: self.MinterStoragePath)
     emit ContractInitialized()
-	}
+  }
 }
