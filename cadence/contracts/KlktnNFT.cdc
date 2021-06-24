@@ -21,7 +21,7 @@ pub contract KlktnNFT: NonFungibleToken {
   // -----------------------------------------------------------------------
   pub let CollectionStoragePath: StoragePath
   pub let CollectionPublicPath: PublicPath
-  pub let MinterStoragePath: StoragePath
+  pub let AdminStoragePath: StoragePath
 
   // -----------------------------------------------------------------------
   // KlktnNFT Contract Properties
@@ -171,10 +171,10 @@ pub contract KlktnNFT: NonFungibleToken {
     return <- create Collection()
   }
 
-  // NFTMinter
+  // Admin
   // - Administrative resource that only the contract deployer has access to
   // - to mint token and create NFT templates
-  pub resource NFTMinter {
+  pub resource Admin {
 
     // mintNFT: Mints a new NFT with a new ID
     // - and deposit it in the recipients collection using their collection reference
@@ -209,7 +209,7 @@ pub contract KlktnNFT: NonFungibleToken {
       KlktnNFT.tokenMintedPerType[typeID] = serialNumber
     }
     
-    pub fun updateTemplateMetaData(typeID: UInt64, metadataToUpdate: {String: String}): KlktnNFT.KlktnNFTMetadata {
+    pub fun updateTemplateMetadata(typeID: UInt64, metadataToUpdate: {String: String}): KlktnNFT.KlktnNFTMetadata {
       if !KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
         panic("Token with the typeID does not exist.")
       }
@@ -300,7 +300,7 @@ pub contract KlktnNFT: NonFungibleToken {
     // Set our named paths
     self.CollectionStoragePath = /storage/KlktnNFTCollection
     self.CollectionPublicPath = /public/KlktnNFTCollection
-    self.MinterStoragePath = /storage/KlktnNFTMinter
+    self.AdminStoragePath = /storage/KlktnNFTAdmin
 
     // Initialize the total supply
     self.totalSupply = 0
@@ -310,8 +310,8 @@ pub contract KlktnNFT: NonFungibleToken {
     self.tokenMintedPerType = {}
 
     // Create a Minter resource and save it to storage
-    let minter <- create NFTMinter()
-    self.account.save(<-minter, to: self.MinterStoragePath)
+    let admin <- create Admin()
+    self.account.save(<-admin, to: self.AdminStoragePath)
     emit ContractInitialized()
   }
 }
