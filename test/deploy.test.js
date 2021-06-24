@@ -172,7 +172,7 @@ describe("Test Transaction Code", () => {
     let typeID
     let tokenName
     let mintLimit
-    let metaData
+    let metadata
     let signers
     const txTemplate = await getTransactionCode({
       name: flowConfigs.transactions.createTokenTemplate,
@@ -183,10 +183,9 @@ describe("Test Transaction Code", () => {
       typeID = 1
       tokenName = 'Kevin Number 1'
       mintLimit = 299
-      metaData = [
-        {key: 'artist', value: 'Kevin Woo'},
-        {key: 'releaseYear', value: '2021'},
-        // {key: 'uri', value: 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7'},
+      metadata = [
+        {key: 'artist', value: 'Donkey King'},
+        {key: 'releaseYear', value: '1983'},
       ]
       const txResult = await sendTransaction({ 
         code: txTemplate,
@@ -194,7 +193,7 @@ describe("Test Transaction Code", () => {
           [typeID, UInt64],
           [tokenName, String],
           [mintLimit, UInt64],
-          [metaData, Dictionary({key: String, value: String})],
+          [metadata, Dictionary({key: String, value: String})],
         ],
         signers: [flowConfigs.Minter]
       })
@@ -207,20 +206,20 @@ describe("Test Transaction Code", () => {
       // event should have the same emit limit
       expect(txResult.events[0].data.mintLimit).to.equal(mintLimit)
       // metaData should match with template input (key)
-      expect(txResult.events[0].data.metaData).to.have.deep.property('artist', 'Kevin Woo')
-      expect(txResult.events[0].data.metaData).to.have.deep.property('releaseYear', '2021')
-      expect(txResult.events[0].data.metaData).to.not.have.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
+      expect(txResult.events[0].data.metadata).to.have.deep.property('artist', 'Donkey King')
+      expect(txResult.events[0].data.metadata).to.have.deep.property('releaseYear', '1983')
+      expect(txResult.events[0].data.metadata).to.not.have.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
     } catch (error) {
       throw error
     }
-    // update metaData by adding uri
-    const updateMetaDataTxTemplate = await getTransactionCode({
-      name: flowConfigs.transactions.updateMetaData,
+    // update metadata by adding uri
+    const updateMetadataTxTemplate = await getTransactionCode({
+      name: flowConfigs.transactions.updateMetadata,
       addressMap: flowConfigs.minterAddressMap,
     })
     try {
-      const updateMetaDataTxResult = await sendTransaction({ 
-        code: updateMetaDataTxTemplate,
+      const updateMetadataTxResult = await sendTransaction({ 
+        code: updateMetadataTxTemplate,
         args: [
           [typeID, UInt64],
           [
@@ -228,6 +227,7 @@ describe("Test Transaction Code", () => {
             {key: 'artist', value: 'Kevin Woo'},
             {key: 'releaseYear', value: '2021'},
             {key: 'uri', value: 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7'},
+            {key: 'releaseCompany', value: 'KLKTN Limited'},
             ],
             Dictionary({key: String, value: String}),
           ],
@@ -235,17 +235,18 @@ describe("Test Transaction Code", () => {
         signers: [flowConfigs.Minter]
       })
       // should have 1 event emitted for success creation (update)
-      expect(updateMetaDataTxResult.events.length).to.equal(1)
+      expect(updateMetadataTxResult.events.length).to.equal(1)
       // event should have the same typeID as the old one
-      expect(updateMetaDataTxResult.events[0].data.typeID).to.equal(typeID)
+      expect(updateMetadataTxResult.events[0].data.typeID).to.equal(typeID)
       // event should have the same tokenName as the old one
-      expect(updateMetaDataTxResult.events[0].data.tokenName).to.equal(tokenName)
+      expect(updateMetadataTxResult.events[0].data.tokenName).to.equal(tokenName)
       // event should have the same emit limit as the old one
-      expect(updateMetaDataTxResult.events[0].data.mintLimit).to.equal(mintLimit)
-      // metaData should match with new template metaData
-      expect(updateMetaDataTxResult.events[0].data.metaData).to.have.deep.property('artist', 'Kevin Woo')
-      expect(updateMetaDataTxResult.events[0].data.metaData).to.have.deep.property('releaseYear', '2021')
-      expect(updateMetaDataTxResult.events[0].data.metaData).to.have.deep.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
+      expect(updateMetadataTxResult.events[0].data.mintLimit).to.equal(mintLimit)
+      // metadata should match with new template metaData
+      expect(updateMetadataTxResult.events[0].data.metadata).to.have.deep.property('artist', 'Kevin Woo')
+      expect(updateMetadataTxResult.events[0].data.metadata).to.have.deep.property('releaseYear', '2021')
+      expect(updateMetadataTxResult.events[0].data.metadata).to.have.deep.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
+      expect(updateMetadataTxResult.events[0].data.metadata).to.have.deep.property('releaseCompany', 'KLKTN Limited')
     } catch (error) {
       throw error
     }
@@ -255,7 +256,7 @@ describe("Test Transaction Code", () => {
       typeID = 2
       tokenName = 'Kevin Number 2'
       mintLimit = 2
-      metaData = [
+      metadata = [
         {key: 'artist', value: 'Kevin Woo'},
         {key: 'releaseYear', value: '2021'},
         {key: 'uri', value: 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7'},
@@ -266,7 +267,7 @@ describe("Test Transaction Code", () => {
           [typeID, UInt64],
           [tokenName, String],
           [mintLimit, UInt64],
-          [metaData, Dictionary({key: String, value: String})],
+          [metadata, Dictionary({key: String, value: String})],
         ],
         signers: [flowConfigs.Minter]
       })
@@ -279,9 +280,9 @@ describe("Test Transaction Code", () => {
       // event should have the same emit limit
       expect(txResult.events[0].data.mintLimit).to.equal(mintLimit)
       // metaData should match with template input (key)
-      expect(txResult.events[0].data.metaData).to.have.deep.property('artist', 'Kevin Woo')
-      expect(txResult.events[0].data.metaData).to.have.deep.property('releaseYear', '2021')
-      expect(txResult.events[0].data.metaData).to.have.deep.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
+      expect(txResult.events[0].data.metadata).to.have.deep.property('artist', 'Kevin Woo')
+      expect(txResult.events[0].data.metadata).to.have.deep.property('releaseYear', '2021')
+      expect(txResult.events[0].data.metadata).to.have.deep.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
     } catch (error) {
       throw error
     }
@@ -407,10 +408,13 @@ describe("Check Token id and SerialNumber", () => {
         expect(scriptResult.id).to.equal(tokenCounter++)
         // serialNumber should auto-increment from 0 per typeID
         expect(scriptResult.serialNumber).to.equal(serialNumberCounter[typeID]++)
-        // metaData matches with template
-        expect(scriptResult.metaData).to.have.deep.property('artist', 'Kevin Woo')
-        expect(scriptResult.metaData).to.have.deep.property('releaseYear', '2021')
-        expect(scriptResult.metaData).to.have.deep.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
+        // metadata matches with template
+        expect(scriptResult.metadata).to.have.deep.property('artist', 'Kevin Woo')
+        expect(scriptResult.metadata).to.have.deep.property('releaseYear', '2021')
+        expect(scriptResult.metadata).to.have.deep.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
+        if (typeID === 1) {
+          expect(scriptResult.metadata).to.have.deep.property('releaseCompany', 'KLKTN Limited')
+        }
       } catch (error) {
         throw error
       }

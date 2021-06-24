@@ -9,7 +9,7 @@
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import KlktnNFT from "../contracts/KlktnNFT.cdc"
 
-transaction(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {String: String}) {
+transaction(typeID: UInt64, tokenName: String, mintLimit: UInt64, metadata: {String: String}) {
 
   // local variable for storing the minter reference
   let minter: &KlktnNFT.NFTMinter
@@ -21,6 +21,6 @@ transaction(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {Str
   }
 
   execute {
-    self.minter.createTemplate(typeID: typeID, tokenName: tokenName, mintLimit: mintLimit, metaData: metaData)
+    self.minter.createTemplate(typeID: typeID, tokenName: tokenName, mintLimit: mintLimit, metadata: metadata)
   }
 }

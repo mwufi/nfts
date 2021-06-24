@@ -1,12 +1,12 @@
 //e.g. flow transactions send ./cadence/transactions/update_metadata.cdc --arg UInt64:1 -- arg <json>
 
-// This transction uses the NFTMinter resource to update metaData for token template of typeID
+// This transction uses the NFTMinter resource to update metadata for token template of typeID
 // It must be run with the account that has the minter resource stored at path /storage/NFTMinter.
 
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import KlktnNFT from "../contracts/KlktnNFT.cdc"
 
-transaction(typeID: UInt64, metaDataToUpdate: {String: String}) {
+transaction(typeID: UInt64, metadataToUpdate: {String: String}) {
 
   // local variable for storing the minter reference
   let minter: &KlktnNFT.NFTMinter
@@ -18,7 +18,7 @@ transaction(typeID: UInt64, metaDataToUpdate: {String: String}) {
   }
 
   execute {
-    // update metaData
-    self.minter.updateMetaData(typeID: typeID, metaDataToUpdate: metaDataToUpdate)
+    // update metadata
+    self.minter.updateTemplateMetaData(typeID: typeID, metadataToUpdate: metadataToUpdate)
   }
 }

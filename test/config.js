@@ -19,13 +19,13 @@ const getFlowConfigs = () => {
   const createTokenTemplateTransactionFileName = 'create_token_template'
   const mintKlktnNFTTransactionFileName = 'mint_klktn_token'
   const transferTokenTransactionFileName = 'transfer_klktn_token'
-  const updateMetaDataTransactionFileName = 'update_metadata'
+  const updateMetadataTransactionFileName = 'update_template_metadata'
   const transactions = {
     setupAccount: setupAccountTransactionFileName,
     createTokenTemplate: createTokenTemplateTransactionFileName,
     mintKlktnNFT: mintKlktnNFTTransactionFileName,
     transferToken: transferTokenTransactionFileName,
-    updateMetaData: updateMetaDataTransactionFileName,
+    updateMetadata: updateMetadataTransactionFileName,
   }
   // script files
   const checkAccountStorageScriptFileName = 'check_account_storage'
