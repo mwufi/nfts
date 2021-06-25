@@ -12,16 +12,16 @@ pub contract KlktnNFT: NonFungibleToken {
   // Emitted when Collection events below are created
   pub event Withdraw(id: UInt64, from: Address?)
   pub event Deposit(id: UInt64, to: Address?)
-  pub event Minted(id: UInt64, typeID: UInt64, serialNumber: UInt64, metaData: {String: String})
+  pub event Minted(id: UInt64, typeID: UInt64, serialNumber: UInt64, metadata: {String: String})
   // Emitted when an nft template is created
-  pub event NFTTemplateCreated(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {String: String})
+  pub event NFTTemplateCreated(typeID: UInt64, tokenName: String, mintLimit: UInt64, metadata: {String: String})
   
   // -----------------------------------------------------------------------
   // KlktnNFT Contract Named Paths
   // -----------------------------------------------------------------------
   pub let CollectionStoragePath: StoragePath
   pub let CollectionPublicPath: PublicPath
-  pub let MinterStoragePath: StoragePath
+  pub let AdminStoragePath: StoragePath
 
   // -----------------------------------------------------------------------
   // KlktnNFT Contract Properties
@@ -30,14 +30,11 @@ pub contract KlktnNFT: NonFungibleToken {
   // - Total number of KlktnNFTs that have been minted
   pub var totalSupply: UInt64
   // klktnNFTTypeSet:
-  // - Dictionary for metaData and administrative parameters per typeID
-  pub var klktnNFTTypeSet: {UInt64: KlktnNFTMetaData}
-  // tokenExpiredPerType:
-  // - Dictionary to hold expired token templates
-  pub var tokenExpiredPerType: {UInt64: Bool}
+  // - Dictionary for metadata and administrative parameters per typeID
+  access(self) var klktnNFTTypeSet: {UInt64: KlktnNFTMetadata}
   // tokenMintedPerType:
   // - Dictionary to track minted tokens per typeID
-  pub var tokenMintedPerType: {UInt64: UInt64}
+  access(self) var tokenMintedPerType: {UInt64: UInt64}
 
   // -----------------------------------------------------------------------
   // KlktnNFT Contract Resource Interfaces
@@ -64,20 +61,20 @@ pub contract KlktnNFT: NonFungibleToken {
   // -----------------------------------------------------------------------
   // KlktnNFT Structs
   // -----------------------------------------------------------------------
-  // KlktnNFTMetaData:
+  // KlktnNFTMetadata:
   // - metadata and properties for token per typeID
-  pub struct KlktnNFTMetaData {
+  pub struct KlktnNFTMetadata {
     pub let typeID: UInt64
     pub let tokenName: String
     pub var mintLimit: UInt64
-    pub let metaData: {String: String}
+    pub let metadata: {String: String}
 
-    init(initTypeID: UInt64, initTokenName: String, initMintLimit: UInt64, initMetaData: {String: String}){
+    init(initTypeID: UInt64, initTokenName: String, initMintLimit: UInt64, initMetadata: {String: String}){
       self.typeID = initTypeID
       self.tokenName = initTokenName
       self.mintLimit = initMintLimit
-      self.metaData = initMetaData
-      emit NFTTemplateCreated(typeID: initTypeID, tokenName: initTokenName, mintLimit: initMintLimit, metaData: initMetaData)
+      self.metadata = initMetadata
+      emit NFTTemplateCreated(typeID: initTypeID, tokenName: initTokenName, mintLimit: initMintLimit, metadata: initMetadata)
     }
   }
 
@@ -93,14 +90,14 @@ pub contract KlktnNFT: NonFungibleToken {
     pub let typeID: UInt64
     // serial number of token, this is unique and auto-increment per typeID
     pub let serialNumber: UInt64
-    // metaData of the NFT
-    pub let metaData: {String: String}
+    // metadata of the NFT
+    pub let metadata: {String: String}
 
     init(initID: UInt64, initTypeID: UInt64, initSerialNumber: UInt64) {
       self.id = initID
       self.typeID = initTypeID
       self.serialNumber = initSerialNumber
-      self.metaData = KlktnNFT.klktnNFTTypeSet[initTypeID]!.metaData
+      self.metadata = KlktnNFT.klktnNFTTypeSet[initTypeID]!.metadata
     }
   }
 
@@ -174,33 +171,33 @@ pub contract KlktnNFT: NonFungibleToken {
     return <- create Collection()
   }
 
-  // NFTMinter
+  // Admin
   // - Administrative resource that only the contract deployer has access to
   // - to mint token and create NFT templates
-  pub resource NFTMinter {
+  pub resource Admin {
 
-		// mintNFT: Mints a new NFT with a new ID
-		// - and deposit it in the recipients collection using their collection reference
-		pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, typeID: UInt64) {
+    // mintNFT: Mints a new NFT with a new ID
+    // - and deposit it in the recipients collection using their collection reference
+    pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, typeID: UInt64) {
       // check if template of typeID exists
       if !KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
         panic("template for typeID does not exist.")
       }
       // check if token template is expired
-      if KlktnNFT.tokenExpiredPerType.containsKey(typeID) {
+      if KlktnNFT.checkTokenExpiration(typeID: typeID) {
         panic("token of this typeID is no longer being offered.")
       }      
-      let targetTokenMetaData = KlktnNFT.klktnNFTTypeSet[typeID]!
+      let targetTokenMetadata = KlktnNFT.klktnNFTTypeSet[typeID]!
       // check serial number existence, initialize it if serial number does not exist
       if !KlktnNFT.tokenMintedPerType.containsKey(typeID) {
         KlktnNFT.tokenMintedPerType[typeID] = (0 as UInt64)
       }
       let serialNumber = KlktnNFT.tokenMintedPerType[typeID]! + (1 as UInt64)
       // emit Minted event
-      emit Minted(id: KlktnNFT.totalSupply, typeID: typeID, serialNumber: serialNumber, metaData: targetTokenMetaData.metaData)
+      emit Minted(id: KlktnNFT.totalSupply, typeID: typeID, serialNumber: serialNumber, metadata: targetTokenMetadata.metadata)
 
-			// deposit it in the recipient's account using their reference
-			recipient.deposit(token: <-create KlktnNFT.NFT(
+      // deposit it in the recipient's account using their reference
+      recipient.deposit(token: <-create KlktnNFT.NFT(
         initID: KlktnNFT.totalSupply,
         initTypeID: typeID,
         initSerialNumber: serialNumber
@@ -208,27 +205,39 @@ pub contract KlktnNFT: NonFungibleToken {
       )
 
       KlktnNFT.totalSupply = KlktnNFT.totalSupply + (1 as UInt64)
-      // expire token when mintLimit is hit
-      if serialNumber >= targetTokenMetaData.mintLimit {
-        KlktnNFT.tokenExpiredPerType[typeID] = true
-      }
       // increse the serial number for the minted token type
       KlktnNFT.tokenMintedPerType[typeID] = serialNumber
-		}
+    }
+    
+    pub fun updateTemplateMetadata(typeID: UInt64, metadataToUpdate: {String: String}): KlktnNFT.KlktnNFTMetadata {
+      if !KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
+        panic("Token with the typeID does not exist.")
+      }
+      // typeID cannot change
+      var NFTTemplateObj = KlktnNFT.klktnNFTTypeSet[typeID]!
+      let typeID = NFTTemplateObj.typeID
+      let tokenName = NFTTemplateObj.tokenName
+      let mintLimit = NFTTemplateObj.mintLimit
+      let newNFTTemplateObj = KlktnNFTMetadata(initTypeID: typeID, initTokenName: tokenName, initMintLimit: mintLimit, initMetadata: metadataToUpdate)
+      // update
+      KlktnNFT.klktnNFTTypeSet[typeID] = newNFTTemplateObj
+      // return updated object
+      return KlktnNFT.klktnNFTTypeSet[typeID]!
+    }
 
     // mintNFT: createTemplate: creates a template for token of typeID
-    pub fun createTemplate(typeID: UInt64, tokenName: String, mintLimit: UInt64, metaData: {String: String}): UInt64 {
+    pub fun createTemplate(typeID: UInt64, tokenName: String, mintLimit: UInt64, metadata: {String: String}): UInt64 {
       // check if template with the same id exists
       if KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
         panic("Token with the same typeID already exists.")
       }
       // create a new KlktnNFTMetaData resource for the typeID
-      var newNFTTemplate = KlktnNFTMetaData(initTypeID: typeID, initTokenName: tokenName, initMintLimit: mintLimit, initMetaData: metaData)
+      var newNFTTemplate = KlktnNFTMetadata(initTypeID: typeID, initTokenName: tokenName, initMintLimit: mintLimit, initMetadata: metadata)
       // store it in the klktnNFTTypeSet mapping field
       KlktnNFT.klktnNFTTypeSet[newNFTTemplate.typeID] = newNFTTemplate
       return newNFTTemplate.typeID
     }
-	}
+  }
 
   // -----------------------------------------------------------------------
   // KlktnNFT contract-level function definitions
@@ -260,11 +269,19 @@ pub contract KlktnNFT: NonFungibleToken {
 
   // checkTokenExpiration
   // - Returns: boolean indicating token of typeID is expired
+  // - We also return true representing token of typeID is expired for tokens without valid templates
   pub fun checkTokenExpiration(typeID: UInt64): Bool {
-    if KlktnNFT.tokenExpiredPerType.containsKey(typeID) {
-      return true
+    // get enforced token mint limit
+    var tokenMintLimit = (0 as UInt64)
+    if let tokenMetadata = KlktnNFT.klktnNFTTypeSet[typeID] {
+      tokenMintLimit = tokenMetadata.mintLimit
     }
-    return false
+    // Get number of minted tokens
+    var tokenMinted = (0 as UInt64)
+    if let tokenMintedFromContractVar = KlktnNFT.tokenMintedPerType[typeID] {
+      tokenMinted = KlktnNFT.tokenMintedPerType[typeID]!
+    }
+    return tokenMinted >= tokenMintLimit
   }
 
   // checkTemplate
@@ -283,19 +300,18 @@ pub contract KlktnNFT: NonFungibleToken {
     // Set our named paths
     self.CollectionStoragePath = /storage/KlktnNFTCollection
     self.CollectionPublicPath = /public/KlktnNFTCollection
-    self.MinterStoragePath = /storage/KlktnNFTMinter
+    self.AdminStoragePath = /storage/KlktnNFTAdmin
 
     // Initialize the total supply
     self.totalSupply = 0
 
     // Initialize the type mappings
     self.klktnNFTTypeSet = {}
-    self.tokenExpiredPerType = {}
     self.tokenMintedPerType = {}
 
     // Create a Minter resource and save it to storage
-    let minter <- create NFTMinter()
-    self.account.save(<-minter, to: self.MinterStoragePath)
+    let admin <- create Admin()
+    self.account.save(<-admin, to: self.AdminStoragePath)
     emit ContractInitialized()
-	}
+  }
 }

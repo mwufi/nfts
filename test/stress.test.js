@@ -112,7 +112,7 @@ describe("Flow Stress Test", () => {
       const typeID = 1
       const tokenName = 'Kevin Number 1'
       const mintLimit = 2000
-      const metaData = [
+      const metadata = [
         {key: 'artist', value: 'Kevin Woo'},
         {key: 'releaseYear', value: '2021'},
         {key: 'uri', value: 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7'},
@@ -123,7 +123,7 @@ describe("Flow Stress Test", () => {
           [typeID, UInt64],
           [tokenName, String],
           [mintLimit, UInt64],
-          [metaData, Dictionary({key: String, value: String})],
+          [metadata, Dictionary({key: String, value: String})],
         ],
         signers: [flowConfigs.Minter]
       })
