@@ -51,7 +51,7 @@
 
 Please use node v14
 
-Due to some issue with dependencies we've committed `node_modules`, for now don't run `npm install` or it might break packages ([described in more detail here](https://github.com/onflow/flow-js-testing/issues/38))
+Run `npm install` to install dependency packages. (Note: `npm install -g node-gyp` might be required if you have any dependency installation failures)
 
 **Run** `npm test` to run the 3 tests we setup below for testing the Cadence contracts, transactions, and scripts, you may also find the test files in the ./test folder
 

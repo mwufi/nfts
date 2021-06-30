@@ -90,14 +90,16 @@ pub contract KlktnNFT: NonFungibleToken {
     pub let typeID: UInt64
     // serial number of token, this is unique and auto-increment per typeID
     pub let serialNumber: UInt64
-    // metadata of the NFT
-    pub let metadata: {String: String}
+
+    // fetch metadata from the contract
+    pub fun getNFTMetadata(): {String: String} {
+      return KlktnNFT.getNFTMetadata(typeID: self.typeID)
+    }
 
     init(initID: UInt64, initTypeID: UInt64, initSerialNumber: UInt64) {
       self.id = initID
       self.typeID = initTypeID
       self.serialNumber = initSerialNumber
-      self.metadata = KlktnNFT.klktnNFTTypeSet[initTypeID]!.metadata
     }
   }
 
@@ -291,6 +293,15 @@ pub contract KlktnNFT: NonFungibleToken {
       return true
     }
     return false
+  }
+
+  // getNFTMetadata
+  // - returns the metadata of an NFT given a typeID
+  pub fun getNFTMetadata(typeID: UInt64): {String: String} {
+    if KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
+      return KlktnNFT.klktnNFTTypeSet[typeID]!.metadata
+    }
+    panic("invalid token typeID.")
   }
 
   // -----------------------------------------------------------------------
