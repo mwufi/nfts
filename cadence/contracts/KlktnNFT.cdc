@@ -301,7 +301,7 @@ pub contract KlktnNFT: NonFungibleToken {
     if KlktnNFT.klktnNFTTypeSet.containsKey(typeID) {
       return KlktnNFT.klktnNFTTypeSet[typeID]!.metadata
     }
-    panic("invalid tokentypeID.")
+    panic("invalid token typeID.")
   }
 
   // -----------------------------------------------------------------------
