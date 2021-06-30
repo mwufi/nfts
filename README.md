@@ -51,7 +51,7 @@
 
 Please use node v14
 
-Run `npm install` to install dependency packages. (Note: `npm install -g node-gyp` might be required if you have any dependency installation failures)
+Run `npm install` to install dependency packages. (Note: Try `npm install -g node-gyp` if you have package dependency errors)
 
 **Run** `npm test` to run the 3 tests we setup below for testing the Cadence contracts, transactions, and scripts, you may also find the test files in the ./test folder
 
