@@ -386,8 +386,12 @@ describe("Check Token id and SerialNumber", () => {
       3: 2,
       4: 2,
     }
-    const scriptTemplate = await getScriptCode({
+    const getPropertyScriptTemplate = await getScriptCode({
       name: flowConfigs.scripts.printNFTProperties,
+      addressMap: flowConfigs.minterAddressMap,
+    })
+    const getMetadataScriptTemplate = await getScriptCode({
+      name: flowConfigs.scripts.printNFTMetadata,
       addressMap: flowConfigs.minterAddressMap,
     })
     // execute script for Mintee Collection
@@ -395,30 +399,67 @@ describe("Check Token id and SerialNumber", () => {
     for (const tokenId of Array(5).keys()) {
       const typeID = typeIDHash[tokenId]
       try {
-        const scriptResult = await executeScript({
-          code: scriptTemplate,
+        const getPropertiesScriptResult = await executeScript({
+          code: getPropertyScriptTemplate,
+          args: [
+            [Mintee, Address],
+            [tokenId, UInt64],
+          ]
+        })
+        const getMetadataScriptResult = await executeScript({
+          code: getMetadataScriptTemplate,
           args: [
             [Mintee, Address],
             [tokenId, UInt64],
           ]
         })
         // typeID should be the intended typeID
-        expect(scriptResult.typeID).to.equal(typeID)
+        expect(getPropertiesScriptResult.typeID).to.equal(typeID)
         // id should equal to tokenID
-        expect(scriptResult.id).to.equal(tokenCounter++)
+        expect(getPropertiesScriptResult.id).to.equal(tokenCounter++)
         // serialNumber should auto-increment from 0 per typeID
-        expect(scriptResult.serialNumber).to.equal(serialNumberCounter[typeID]++)
+        expect(getPropertiesScriptResult.serialNumber).to.equal(serialNumberCounter[typeID]++)
         // metadata matches with template
-        expect(scriptResult.metadata).to.have.deep.property('artist', 'Kevin Woo')
-        expect(scriptResult.metadata).to.have.deep.property('releaseYear', '2021')
-        expect(scriptResult.metadata).to.have.deep.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
+        expect(getMetadataScriptResult).to.have.deep.property('artist', 'Kevin Woo')
+        expect(getMetadataScriptResult).to.have.deep.property('releaseYear', '2021')
+        expect(getMetadataScriptResult).to.have.deep.property('uri', 'ipfs://QmTv2Tx9XQeLrvg8rs9LCCih6FrHt2mXs3LVBt23ZD7eE7')
         if (typeID === 1) {
-          expect(scriptResult.metadata).to.have.deep.property('releaseCompany', 'KLKTN Limited')
+          expect(getMetadataScriptResult).to.have.deep.property('releaseCompany', 'KLKTN Limited')
         }
       } catch (error) {
         throw error
       }
     }
+  })
+
+  test("try to mutate metadata", async () => {
+    // send a transaction to mutate the token metadata
+    const Mintee = await getAccountAddress("Mintee")
+    const transactionTemplate = await getTransactionCode({
+      name: flowConfigs.transactions.tryMutateData,
+      addressMap: flowConfigs.minterAddressMap,
+    })
+    await sendTransaction({
+      code: transactionTemplate,
+      args: [
+        [0, UInt64],
+      ],
+      signers: [Mintee]
+    })
+    // run a script to check metadata for token 0
+    const getMetadataScriptTemplate = await getScriptCode({
+      name: flowConfigs.scripts.printNFTMetadata,
+      addressMap: flowConfigs.minterAddressMap,
+    })
+    const getMetadataScriptResult = await executeScript({
+      code: getMetadataScriptTemplate,
+      args: [
+        [Mintee, Address],
+        [0, UInt64],
+      ]
+    })
+    expect(getMetadataScriptResult).to.have.deep.property('releaseYear', '2021')
+    expect(getMetadataScriptResult).to.not.have.property('extra', '345')
   })
 
   test("token expires when last token minted", async () => {

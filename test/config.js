@@ -20,24 +20,28 @@ const getFlowConfigs = () => {
   const mintKlktnNFTTransactionFileName = 'mint_klktn_token'
   const transferTokenTransactionFileName = 'transfer_klktn_token'
   const updateMetadataTransactionFileName = 'update_template_metadata'
+  const tryMutateMetadataTransactionFileName = 'try_mutate_metadata'
   const transactions = {
     setupAccount: setupAccountTransactionFileName,
     createTokenTemplate: createTokenTemplateTransactionFileName,
     mintKlktnNFT: mintKlktnNFTTransactionFileName,
     transferToken: transferTokenTransactionFileName,
     updateMetadata: updateMetadataTransactionFileName,
+    tryMutateData: tryMutateMetadataTransactionFileName,
   }
   // script files
   const checkAccountStorageScriptFileName = 'check_account_storage'
   const checkCollectionLengthScriptFileName = 'read_collection_length'
   const checkCollectionIdsScriptFileName = 'read_collection_ids'
   const printNFTPropertiesScriptFileName = 'print_nft_properties'
+  const printNFTMetadataScriptFileName = 'print_nft_metadata'
   const checkTokenExpireScriptFileName = 'check_token_expiration'
   const checkStorageScriptFileName = 'check_account_storage'
   const scripts = {
     checkAccountStorage: checkAccountStorageScriptFileName,
     checkCollectionLength: checkCollectionLengthScriptFileName,
     printNFTProperties: printNFTPropertiesScriptFileName,
+    printNFTMetadata: printNFTMetadataScriptFileName,
     checkTokenExpire: checkTokenExpireScriptFileName,
     listCollectionIds: checkCollectionIdsScriptFileName,
     checkAccountStorage: checkStorageScriptFileName,
