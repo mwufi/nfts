@@ -40,6 +40,7 @@
     "timekeeper": "^2.2.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jest"
+    "test": "./node_modules/.bin/jest",
+    "rsync:contracts": "rsync -avh -r ./cadence -r ./test setup-accounts.sh jest.config.js babel.config.json ../core-minter --delete"
   }
 }
